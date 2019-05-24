@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -57,12 +58,14 @@ int main(){
     }
 
     //片段着色器
+    //在程序中设置颜色值，由CPU发送到GPU
     const char *fragmentShaderSrc = 
     "#version 330 core\n"
     "out vec4 FragColor;\n"
+    "uniform vec4 ourColor;"
     "void main()\n"
     "{\n"
-    "FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "FragColor = ourColor;\n"
     "}\n\0";
 
     unsigned int fragmentShader;
@@ -99,16 +102,6 @@ int main(){
         0.0f, 0.5f, 0.0f
     };
 
-    //下面注释代码太乱，后面写了较整洁的版本
-    // unsigned int VBO;
-    // glGenBuffers(1, &VBO);
-    // glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // unsigned int VAO;
-    // glGenVertexArrays(1, &VAO);
-    // glBindVertexArray(VAO);
-
     unsigned int VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -117,6 +110,7 @@ int main(){
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
 
     //创建VAO之后，设置顶点数据信息
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -128,6 +122,14 @@ int main(){
     // glBindVertexArray(0);
 
     glUseProgram(shaderProgram);
+
+    //查询可用的顶点属性数量
+    // int nrAttrib;
+    // glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttrib);
+    // std::cout << "Maximum nr of vertex attribute: "
+    //           << nrAttrib
+    //           << std::endl; 
+
     while(!glfwWindowShouldClose(window)){
         //输入
         processInput(window);
@@ -138,6 +140,13 @@ int main(){
 
         glUseProgram(shaderProgram);
         // glBindVertexArray(VAO);
+
+        //更新颜色值
+        float timeVal = glfwGetTime();
+        float greenVal = sin(timeVal);
+        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        glUniform4f(vertexColorLocation, 0.4f, greenVal, 0.4f, 1.0f);
+
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         //检查并调用事件， 交换缓冲区
