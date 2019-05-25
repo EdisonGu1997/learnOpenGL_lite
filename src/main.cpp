@@ -38,7 +38,8 @@ int main(){
     glViewport(0, 0, WIDTH, HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    Shader myShader("F:/work-space/learnOpenGL_lite/src/shader/trans_vertex.gc","F:/work-space/learnOpenGL_lite/src/shader/tex_fragment.gc");
+    Shader myShader("F:/work-space/learnOpenGL_lite/src/shader/coord_vertex.gc",
+                    "F:/work-space/learnOpenGL_lite/src/shader/tex_fragment.gc");
 
     float vertices[] = {
         //位置                //颜色             //纹理坐标
@@ -90,37 +91,21 @@ int main(){
     // std::cout << "load";
     unsigned char *data = 
         stbi_load(
-            "F:/work-space/learnOpenGL_lite/res/img/lz.jpg", 
+            "F:/work-space/learnOpenGL_lite/res/img/wall.jpg", 
             &width, &height, &nrChannels, 0);
 
     if(data){
+        
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 
                     width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
-        
+        std::cout << "load done";
     }else{
         std::cout << "Failed to load texture"
                   << std::endl;
     }
+    glBindBuffer(GL_TEXTURE_2D, 0);
     stbi_image_free(data);
-    myShader.use();
-    //查询可用的顶点属性数量
-    // int nrAttrib;
-    // glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttrib);
-    // std::cout << "Maximum nr of vertex attribute: "
-    //           << nrAttrib
-    //           << std::endl; 
-
-    //旋转和缩放
-    
-    //沿Z轴
-    // trans = glm::rotate(trans, glm::radians(90.f), glm::vec3(0.0, 0.0, 1.0));
-    // trans = glm::scale(trans, glm::vec3(1.f, 1.f, 1.f));
-    trans = glm::translate(trans, glm::vec3(0.2f, 0.2f, 0.0f));
-
-    unsigned int transformLoc = glGetUniformLocation(myShader.getID(), "transform");
-    std::cout << glfwGetTime();
-    float angle = 0.0f;
 
     while(!glfwWindowShouldClose(window)){
         //输入
@@ -129,14 +114,27 @@ int main(){
         //渲染
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+
+        glm::mat4 model = glm::mat4(1.0f);        
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 projection = glm::mat4(1.0f);
+        
+        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+        myShader.setFloatMat4("model", &view[0][0]);
+        myShader.setFloatMat4("view", &view[0][0]);
+        myShader.setFloatMat4("projection", &projection[0][0]);
+
+        myShader.setFloatMat4("model", glm::value_ptr(model));
+        myShader.setFloatMat4("view", glm::value_ptr(view));
+        myShader.setFloatMat4("projection", glm::value_ptr(projection));
+
+
         glBindTexture(GL_TEXTURE_2D, texture);
         myShader.use();
         glBindVertexArray(VAO);
-
-        angle += 0.0001f;
-        trans = glm::rotate(trans, angle, glm::vec3(0.f, 0.f, 1.f));
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         //检查并调用事件， 交换缓冲区
@@ -159,7 +157,6 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height){
 void processInput(GLFWwindow *window){
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
         glfwSetWindowShouldClose(window, true);
-    }else if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
-        trans = glm::translate(trans, glm::vec3(-0.1, 0, 0));
     }
+    
 }

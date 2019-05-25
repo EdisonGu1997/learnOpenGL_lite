@@ -5,4 +5,4 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include
 )
 link_directories(lib)
-add_subdirectory(src bin)
+add_subdirectory(src ${PROJECT_SOURCE_DIR}/bin)
