@@ -1,14 +1,19 @@
+//!!!顶点着色器输出的变量名必须和片段着色器接受的变量名相同！！
 #version 330 core
 layout (location = 0) in vec3 iPos;
 layout (location = 1) in vec2 iTexCoord;
+layout (location = 2) in vec3 iColor;
 
-out vec2 oTexCoord;
+out vec3 aColor;
+out vec2 aTexCoord;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
 void main(){
-    oTexCoord = vec2(iTexCoord.x, 1 - iTexCoord.y);
     gl_Position = projection * view * model * vec4(iPos, 1.0f);
+    //oTexCoord = vec2(iTexCoord.x, iTexCoord.y);
+    aColor = iColor;
+    aTexCoord = iTexCoord;
 }
