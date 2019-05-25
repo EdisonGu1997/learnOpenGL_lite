@@ -3,11 +3,15 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <shader.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
+glm::mat4 trans;
 int main(){
     const unsigned int WIDTH = 800;
     const unsigned int HEIGHT = 600;
@@ -34,7 +38,7 @@ int main(){
     glViewport(0, 0, WIDTH, HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    Shader myShader("F:/work-space/learnOpenGL_lite/src/shader/tex_vertex.gc","F:/work-space/learnOpenGL_lite/src/shader/tex_fragment.gc");
+    Shader myShader("F:/work-space/learnOpenGL_lite/src/shader/trans_vertex.gc","F:/work-space/learnOpenGL_lite/src/shader/tex_fragment.gc");
 
     float vertices[] = {
         //位置                //颜色             //纹理坐标
@@ -67,14 +71,10 @@ int main(){
                             8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    //顶点颜色信息
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 
-                            8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 
+    //贴图位置信息
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 
                             8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(1);
 
 
     unsigned int texture;
@@ -103,13 +103,24 @@ int main(){
                   << std::endl;
     }
     stbi_image_free(data);
-
+    myShader.use();
     //查询可用的顶点属性数量
     // int nrAttrib;
     // glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttrib);
     // std::cout << "Maximum nr of vertex attribute: "
     //           << nrAttrib
     //           << std::endl; 
+
+    //旋转和缩放
+    
+    //沿Z轴
+    // trans = glm::rotate(trans, glm::radians(90.f), glm::vec3(0.0, 0.0, 1.0));
+    // trans = glm::scale(trans, glm::vec3(1.f, 1.f, 1.f));
+    trans = glm::translate(trans, glm::vec3(0.2f, 0.2f, 0.0f));
+
+    unsigned int transformLoc = glGetUniformLocation(myShader.getID(), "transform");
+    std::cout << glfwGetTime();
+    float angle = 0.0f;
 
     while(!glfwWindowShouldClose(window)){
         //输入
@@ -118,10 +129,14 @@ int main(){
         //渲染
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
         glBindTexture(GL_TEXTURE_2D, texture);
         myShader.use();
         glBindVertexArray(VAO);
+
+        angle += 0.0001f;
+        trans = glm::rotate(trans, angle, glm::vec3(0.f, 0.f, 1.f));
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         //检查并调用事件， 交换缓冲区
@@ -144,5 +159,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height){
 void processInput(GLFWwindow *window){
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
         glfwSetWindowShouldClose(window, true);
+    }else if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+        trans = glm::translate(trans, glm::vec3(-0.1, 0, 0));
     }
 }
