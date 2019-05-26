@@ -11,7 +11,16 @@
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
-glm::mat4 trans;
+
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f); //Relative to world coordinate;
+// glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f); //whiere camera look at in world
+// glm::vec3 cameraDirection = glm:: normalize(cameraPos - cameraTarget);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float cameraSpeed = 0.05f;
+
+float deltaTime = 0.0f;
+float lastFrameTime = 0.0f;
 int main(){
     const unsigned int WIDTH = 800;
     const unsigned int HEIGHT = 600;
@@ -134,36 +143,71 @@ int main(){
     }
     glBindBuffer(GL_TEXTURE_2D, 0);
     stbi_image_free(data);
-   
 
+   
+    //need up and right axis, it helped by glm::lookAt
+
+    glm::vec3 cubePositions[] = {
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(2.0f, 5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f, 3.0f, -7.5f),
+    };
+
+    glEnable(GL_DEPTH_TEST);
     while(!glfwWindowShouldClose(window)){
+        float currentFrameTime = glfwGetTime();
+        deltaTime = currentFrameTime - lastFrameTime;
+        lastFrameTime = currentFrameTime;
+
         //输入
         processInput(window);
 
         //渲染
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glBindTexture(GL_TEXTURE_2D, texture);
         myShader.use();
         glBindVertexArray(VAO);
 
-        glm::mat4 model = glm::mat4(1.0f);        
-        glm::mat4 view = glm::mat4(1.0f);
+        // glm::mat4 model = glm::mat4(1.0f);        
+        // glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
         
-        model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(1.0f, 0.5f, 0.5f));
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        // model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(1.0f, 0.5f, 0.5f));
+        // view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
         projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
-        myShader.setFloatMat4("model", &view[0][0]);
-        myShader.setFloatMat4("view", &view[0][0]);
-        myShader.setFloatMat4("projection", &projection[0][0]);
+        // myShader.setFloatMat4("model", &view[0][0]);
+        // myShader.setFloatMat4("view", &view[0][0]);
+        // myShader.setFloatMat4("projection", &projection[0][0]);
 
-        myShader.setFloatMat4("model", glm::value_ptr(model));
+        float radius = 10.0f;
+        float camX = sin(glfwGetTime()) * radius;
+        float camZ = cos(glfwGetTime()) * radius;
+
+        glm::mat4 view;
+        // view = glm::lookAt(
+        //     glm::vec3(camX, 0.0f, camZ),
+        //     glm::vec3(0.0f, 0.0f, 0.0f),
+        //     glm::vec3(0.0f, 1.0f, 0.0f)
+        //     );
+
+        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+        // myShader.setFloatMat4("model", glm::value_ptr(model));
         myShader.setFloatMat4("view", glm::value_ptr(view));
         myShader.setFloatMat4("projection", glm::value_ptr(projection));
 
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for(int i = 0; i < 6; i ++){
+            glm::mat4 model;
+            model = glm::translate(model, cubePositions[i]);
+            model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(1.0f, 0.1f * i, 0.1 * i));
+            myShader.setFloatMat4("model", &model[0][0]);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         glBindVertexArray(0);
         myShader.unuse();
@@ -185,8 +229,20 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height){
 }
 
 void processInput(GLFWwindow *window){
+    cameraSpeed = 2.5f * deltaTime;
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
         glfwSetWindowShouldClose(window, true);
     }
-    
+    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
+        cameraPos += cameraSpeed * cameraFront;
+    }
+    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
+        cameraPos -= cameraSpeed * cameraFront;
+    }
+    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    }
+    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    }
 }
