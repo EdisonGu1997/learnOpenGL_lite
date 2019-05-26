@@ -55,6 +55,12 @@ void Camera::processKeyboard(Camera_Movement direction, float deltaTime){
     if(direction == RIGHT){
         _position += _right * velocity;
     }
+    if(direction == RAISE){
+        _position.y += velocity;
+    }
+    if(direction == DROP){
+        _position.y -= velocity;
+    }
 }
 void Camera::processMouseMovement(float offsetX, float offsetY, GLboolean constrainPitch){
     offsetX *= _mouse_sensitivity;
