@@ -1,4 +1,4 @@
-#include <shader.h>
+#include <shader.hpp>
 
 Shader::Shader(const char *vertexPath, const char *fragmentPath){
     //1.从文件中读取着色器源码
@@ -96,8 +96,8 @@ void Shader::setInt(const std::string &name, int value) const{
     glUniform1i(glGetUniformLocation(_id, name.c_str()), value);
 }
 
-void Shader::setFloatMat4(const std::string &name, const float *data_ptr) const{
-    glUniformMatrix4fv(glGetUniformLocation(_id, name.c_str()), 1, GL_FALSE, data_ptr);
+void Shader::setFloatMat4(const std::string &name, glm::mat4 mat4) const{
+    glUniformMatrix4fv(glGetUniformLocation(_id, name.c_str()), 1, GL_FALSE, &mat4[0][0]);
 }
 
 unsigned int Shader::getID(){
