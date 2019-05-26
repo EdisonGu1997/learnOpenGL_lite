@@ -64,7 +64,7 @@ int main(){
                     "F:/work-space/learnOpenGL_lite/src/shader/light_color_light_frag.gc");
 
     Shader objectShader("F:/work-space/learnOpenGL_lite/src/shader/light_color_vertex.gc",
-                    "F:/work-space/learnOpenGL_lite/src/shader/ambient_frag.gc");
+                    "F:/work-space/learnOpenGL_lite/src/shader/specular_frag.gc");
 
     float vertices[] = {
     -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -159,6 +159,7 @@ int main(){
         projection = glm::perspective(glm::radians(myCamera.getZoom()), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
         objectShader.use();
         objectShader.setFloatVec3("lightPos", lightPos);
+        objectShader.setFloatVec3("viewPos", myCamera.getPosition());
         objectShader.setFloatMat4("model", model);
         objectShader.setFloatMat4("view", view);
         objectShader.setFloatMat4("projection", projection);

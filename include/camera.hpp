@@ -51,4 +51,5 @@ class Camera{
     void processMouseScroll(float offsetY);
 
     float getZoom();
+    glm::vec3 getPosition();
 };
