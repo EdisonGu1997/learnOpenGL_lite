@@ -64,7 +64,7 @@ int main(){
                     "F:/work-space/learnOpenGL_lite/src/shader/light_color_light_frag.gc");
 
     Shader objectShader("F:/work-space/learnOpenGL_lite/src/shader/light_color_vertex.gc",
-                    "F:/work-space/learnOpenGL_lite/src/shader/specular_frag.gc");
+                    "F:/work-space/learnOpenGL_lite/src/shader/material_frag.gc");
 
     float vertices[] = {
     -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -165,6 +165,14 @@ int main(){
         objectShader.setFloatMat4("projection", projection);
         objectShader.setFloatVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
         objectShader.setFloatVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+        objectShader.setFloatVec3("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
+        objectShader.setFloatVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+        objectShader.setFloatVec3("material.specular", 0.5f, 0.5f, 0.5f);
+        objectShader.setFloat("material.shininess", 32.0f);
+        objectShader.setFloatVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+        objectShader.setFloatVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+        objectShader.setFloatVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
